@@ -1,0 +1,4 @@
+tfx
+pandas
+requests
+tensorflow_model_analysis
