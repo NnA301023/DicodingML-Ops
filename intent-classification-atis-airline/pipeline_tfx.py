@@ -222,7 +222,7 @@ TUNING_FILE = "params_tuning.py"
 #     ## Dynamic model architecture (Bi-LSTM)
 #     inputs = tf.keras.Input(shape=(1,), name=transform_name(feature), dtype=tf.string)
 #     x = vectorizer_layer(inputs)
-#     x = layers.Embedding(input_dim=10_000, output_dim=embed_dims)(x)
+#     x = layers.Embedding(input_dim=5_000, output_dim=embed_dims)(x)
 #     x = layers.Bidirectional(layers.LSTM(lstm_units))(x)
 #     for _ in range(n_hidden_layers):
 #         x = layers.Dense(dense_units, activation=tf.nn.relu)(x)
@@ -246,7 +246,7 @@ TUNING_FILE = "params_tuning.py"
 #     eval_set = input_fn(fn_args.eval_files[0], tf_output, num_epochs)
 # 
 #     ## Define vectorization layers
-#     vectorizer_dataset = train_set.map(lambda f, _: f[transform_name(feature)])
+#     vectorizer_dataset = train_set.map(lambda f, l: f[transform_name(feature)])
 #     vectorizer_layer = layers.TextVectorization(
 #         max_tokens=1_000, output_mode="int", output_sequence_length=500
 #     )
@@ -262,16 +262,20 @@ TUNING_FILE = "params_tuning.py"
 #         project_name="kt_hyperband",
 #     )
 # 
-#     return TunerResult(
-#         tuner=tuner,
-#         fit_kwargs={
-#             "callbacks": [early_stopping],
-#             "x": train_set,
-#             "validation_data": eval_set,
-#             "steps_per_epoch": fn_args.train_steps,
-#             "validation_steps": fn_args.eval_steps,
-#         },
-#     )
+#     try:
+#         result = TunerResult(
+#             tuner=tuner,
+#             fit_kwargs={
+#                 "callbacks": [early_stopping],
+#                 "x": train_set,
+#                 "validation_data": eval_set,
+#                 "steps_per_epoch": fn_args.train_steps,
+#                 "validation_steps": fn_args.eval_steps,
+#         })
+#     except Exception as E:
+#         result = None
+# 
+#     return result
 
 # Define tuner component configuration
 tuner = Tuner(
@@ -288,6 +292,9 @@ INTERACTIVE_CONTEXT.run(tuner)
 
 # NOTE: According keras_tuner hyperband documentation, trial iteration based on max_epochs * (math.log(max_epochs, factor) ** 2)
 # Reference: https://github.com/keras-team/keras-tuner/issues/320
+
+# Overview best parameters
+tuner.outputs['best_hyperparameters']
 
 """##### 4.2. Training Model"""
 
